@@ -1,0 +1,147 @@
+/* Top bar chip */
+.llm-monitor-row {
+  spacing: 4px;
+}
+
+.llm-monitor-label {
+  font-feature-settings: "tnum";
+}
+
+/* No track under the chip, only the fill (more specific than .llm-monitor-track) */
+.llm-monitor-track.llm-monitor-line {
+  height: 2px;
+  margin: 0 6px 3px 6px;
+  background-color: transparent;
+}
+
+.llm-monitor-accent {
+  color: -st-accent-color;
+}
+
+/* Detail panel */
+.llm-monitor-panel {
+  width: 400px;
+  spacing: 8px;
+  padding: 4px 6px;
+}
+
+.llm-monitor-hero {
+  spacing: 12px;
+}
+
+.llm-monitor-hero-icon {
+  icon-size: 32px;
+}
+
+.llm-monitor-title {
+  font-weight: bold;
+  font-size: 1.15em;
+}
+
+.llm-monitor-pill {
+  font-size: 0.85em;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+}
+
+.llm-monitor-separator {
+  height: 1px;
+  margin: 4px 0;
+  background-color: rgba(128, 128, 128, 0.3);
+}
+
+.llm-monitor-section {
+  font-size: 0.8em;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+.llm-monitor-strong {
+  font-weight: bold;
+}
+
+.llm-monitor-caption {
+  font-size: 0.9em;
+  font-feature-settings: "tnum";
+}
+
+.llm-monitor-warning {
+  color: #e01b24;
+}
+
+.llm-monitor-indented {
+  margin-left: 18px;
+}
+
+/* Bars */
+.llm-monitor-track {
+  border-radius: 99px;
+  background-color: rgba(128, 128, 128, 0.22);
+}
+
+.llm-monitor-bar-stack {
+  height: 10px;
+}
+
+.llm-monitor-bar-meter {
+  height: 5px;
+  margin-top: 3px;
+}
+
+.llm-monitor-bar-small {
+  height: 4px;
+  margin-top: 3px;
+}
+
+.llm-monitor-fill-accent {
+  background-color: -st-accent-color;
+}
+
+.llm-monitor-fill-neutral {
+  background-color: rgba(128, 128, 128, 0.6);
+}
+
+.llm-monitor-legend,
+.llm-monitor-meter {
+  spacing: 1px;
+}
+
+.llm-monitor-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.llm-monitor-swatch-outlined {
+  border: 1px solid rgba(128, 128, 128, 0.8);
+}
+
+/* Runtimes */
+.llm-monitor-runtimes {
+  spacing: 8px;
+}
+
+.llm-monitor-runtime {
+  spacing: 2px;
+}
+
+.llm-monitor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  margin-right: 10px;
+  border: 1px solid rgba(128, 128, 128, 0.8);
+}
+
+.llm-monitor-dot-running {
+  background-color: rgba(128, 128, 128, 0.8);
+}
+
+.llm-monitor-dot-loaded {
+  background-color: -st-accent-color;
+  border-color: -st-accent-color;
+}

@@ -1,45 +1,41 @@
-# LLM Monitor
-
-![LLM Monitor — a local LLM monitor for your Omarchy bar](preview.png)
+# LLM Monitor for GNOME
 
 **See at a glance when a local LLM is using your GPU, how much it holds, how full its context is, and who is using it.**
 
-LLM Monitor is a small Omarchy bar widget for people who run local models with **llama.cpp**, **Ollama**, **LM Studio** or **vLLM**.
+LLM Monitor is a GNOME Shell extension (GNOME 51) for people who run local models with **llama.cpp**, **Ollama**, **LM Studio** or **vLLM**. It is the GNOME port of the Omarchy bar widget [LLM Monitor](https://github.com/uBruckhaus/omarchy-llm-usage) and uses the same collector.
 
-- **Bar indicator:** a chip icon. Dim while no model is loaded. While a model is resident it shows the GPU memory held by local models and how full the model's context is (e.g. `󰘚 18.0G 33%`), with a thin fill line underneath. It pulses while the GPU is generating. A `!` marks model memory that no longer fits in VRAM and was moved to system RAM.
-- **Context colours:** the chip, its fill line and the panel's buffer bars turn **green** (below 50 %), **yellow** (50 %), **orange** (75 %) and **red** (90 %) as the context fills up, using the named colours of your current Omarchy theme. After your coding agent compacts the conversation, the level drops back with its next request.
+![LLM Monitor panel while llama.cpp is generating](screenshot.png)
+
+- **Top bar indicator:** a chip icon. Dim while no model is loaded. While a model is resident it shows the GPU memory held by local models and how full the model's context is (e.g. `18.0G 33%`), with a thin fill line underneath. It pulses while the GPU is generating. A `!` marks model memory that no longer fits in VRAM and was moved to system RAM.
+- **Context colours:** the chip, its fill line and the panel's buffer bars turn **green** (below 50 %), **yellow** (50 %), **orange** (75 %) and **red** (90 %) as the context fills up. Without a context figure the chip uses your GNOME accent colour.
 - **Detail panel (left click):**
-  - **GPU memory** as one stacked bar with a legend: *LLM models* (the number in the bar), *Desktop & apps* (with the programs behind it, e.g. Hyprland, browser) and *Free*, so the bar number never looks like a mismatch with the GPU total.
+  - **GPU memory** as one stacked bar with a legend: *LLM models* (the number in the bar), *Desktop & apps* (with the programs behind it, e.g. gnome-shell, browser) and *Free*.
   - **Context buffer:** tokens in the context window (e.g. `33k / 98k tokens`) and the share of the reserved KV-cache memory they fill (`≈ 624 MiB of 1.8 GiB`).
-  - **Output buffer:** tokens of the reply being generated against its limit (`max_tokens` or the model's `n-predict`), with the memory they occupy. The last reply stays visible after it ends.
-  - **GPU activity:** load, temperature and power, plus the **generation speed** of the loaded model: live tokens per second while it writes, and min / avg / max over the replies since the monitor started watching (llama.cpp with `--metrics`, vLLM). The average is weighted by tokens.
+  - **Output buffer:** tokens of the reply being generated against its limit (`max_tokens` or the model's `n-predict`). The last reply stays visible after it ends.
+  - **GPU activity:** load, temperature and power, plus the **generation speed**: live tokens per second while it writes, and min / avg / max over the replies since the monitor started watching (llama.cpp, vLLM).
   - **System:** CPU and RAM.
-  - **Runtimes:** llama.cpp, Ollama, LM Studio and vLLM, each with state (not installed / stopped / running / model loaded / model sleeping), model name, context fill, VRAM, CPU, RAM and the programs currently connected (e.g. pi, Simple Recipes).
-  - **Free GPU memory** button and a **btop** shortcut.
-- **Right click:** opens btop.
+  - **Runtimes:** llama.cpp, Ollama, LM Studio and vLLM, each with state (not installed / stopped / running / model loaded / model sleeping), model name, context fill, VRAM, CPU, RAM and the programs currently connected (e.g. pi).
+  - **Free GPU memory** and **Open btop**.
+- **Right click:** opens btop (or brings an open btop window to the front).
 
-## Languages and settings
-
-The interface is built in in eight languages: English, German (Deutsch), French (Français), Spanish (Español), Italian (Italiano), Portuguese (Português), Dutch (Nederlands) and Polish (Polski). It follows the system language (`LC_ALL`, `LC_MESSAGES`, `LANG`) and falls back to English. To pick another one, open the **gear (⚙)** at the top right of the panel → **Language**. The translations ship with the plugin: nothing is downloaded or generated, and the plugin makes no extra requests for them. The choice is stored in the widget's own entry in `~/.config/omarchy/shell.json` (`"language"`); **System (…)** removes it again.
-
-The settings page opens from the gear and closes with **← Back**, Backspace or Esc.
-
-The **ⓘ** button beside the gear opens an **Information** page with a card for each of the author's other plugins in the Omarchy Plugin Marketplace, with a short description in the panel's language. A click on a card opens that plugin's marketplace page in the browser (a fixed `https://plugins.omarchy.org/plugin.html?id=…` address); nothing is downloaded. **← Back**, Backspace or Esc returns.
+English only.
 
 ## Install
 
-Requires Omarchy Quattro's plugin-capable Quickshell and `python3` (standard library only, no extra packages). No setup script is needed.
+Requires GNOME Shell 51 and `python3` (standard library only). btop is optional.
 
 ```sh
-omarchy plugin add https://github.com/uBruckhaus/omarchy-llm-usage
-omarchy plugin enable ubruckhaus.llm-usage
+tools/build.sh
+gnome-extensions install --force dist/llm-monitor@ubruckhaus.github.io.shell-extension.zip
 ```
+
+Log out and back in, then `gnome-extensions enable llm-monitor@ubruckhaus.github.io`.
 
 GPU memory, load, temperature and power are read from the amdgpu sysfs and DRM `fdinfo` interfaces (AMD GPUs). On other GPUs the runtime and system information still works; GPU values may be missing.
 
 ## How it works
 
-A collector (`scripts/llm-monitor.py`) runs while the widget is loaded and streams one snapshot every two seconds (about 1–2 % of one CPU core, ~25 MiB RAM).
+A collector (`scripts/llm-monitor.py`) runs while the extension is enabled and streams one snapshot every two seconds (about 1–2 % of one CPU core, ~25 MiB RAM).
 
 - **Read-only by default.** It reads `/proc`, sysfs and the runtimes' local status endpoints on `127.0.0.1` (llama.cpp 8080, Ollama 11434, LM Studio 1234, vLLM 8000 or its `--port`) **only while that runtime is already running**. It never starts, stops or reconfigures a runtime by itself and sends nothing to the network.
 - **Runtimes are told apart by systemd unit and executable path**, because Ollama and LM Studio both ship an engine named `llama-server`.
@@ -57,26 +53,18 @@ Only when you click **Free GPU memory**, `scripts/free-gpu.sh` runs:
 
 This stops those local AI services for every program using them at that moment.
 
-## Update or remove
+## Differences from the Omarchy widget
 
-```sh
-omarchy plugin update ubruckhaus.llm-usage
-```
-
-```sh
-omarchy plugin disable ubruckhaus.llm-usage
-omarchy plugin remove ubruckhaus.llm-usage
-```
-
-The plugin creates no files, services or settings outside its own folder, so nothing else needs cleaning up.
+- GNOME Shell extension instead of a Quickshell bar widget; no language setting and no plugin information page.
+- btop opens through `xdg-terminal-exec` (else Ptyxis, Console or GNOME Terminal).
+- llama.cpp context size: the model's `--ctx-size` is used as the context total. With llama.cpp's unified KV cache (the default) every slot reports the whole cache, so adding up the slots counted it several times.
 
 ## Development
 
 ```sh
-python3 scripts/llm-monitor.py --once | python3 -m json.tool
-omarchy plugin validate .
+python3 llm-monitor@ubruckhaus.github.io/scripts/llm-monitor.py --once | python3 -m json.tool
+python3 -m unittest discover -s tests
+tools/headless-test.sh panel     # isolated headless GNOME Shell; screenshots in dist/screenshots/
 ```
-
-`preview.png` is a composed screenshot of the real panel while llama.cpp was generating for a coding agent (see `PREVIEW.md`).
 
 Licensed under [MIT](LICENSE).

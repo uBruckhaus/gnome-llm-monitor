@@ -1,0 +1,8 @@
+{
+  "uuid": "llm-monitor@ubruckhaus.github.io",
+  "name": "LLM Monitor",
+  "description": "Local LLM monitor for the top bar: shows when llama.cpp, Ollama, LM Studio or vLLM holds a model on the GPU, how full its context and output buffers are (green to red), the GPU memory split, load, CPU, RAM and the programs using each runtime. Left click opens the details, right click opens btop. Needs python3.",
+  "shell-version": ["51"],
+  "url": "https://github.com/uBruckhaus/gnome-llm-monitor",
+  "version-name": "0.1.0"
+}

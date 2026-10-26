@@ -7,7 +7,7 @@ import sys
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-spec = importlib.util.spec_from_file_location("llm_monitor", os.path.join(HERE, "..", "scripts", "llm-monitor.py"))
+spec = importlib.util.spec_from_file_location("llm_monitor", os.path.join(HERE, "..", "llm-monitor@ubruckhaus.github.io", "scripts", "llm-monitor.py"))
 mon = importlib.util.module_from_spec(spec)
 sys.modules["llm_monitor"] = mon
 spec.loader.exec_module(mon)

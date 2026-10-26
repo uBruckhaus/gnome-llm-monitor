@@ -619,7 +619,9 @@ def llamacpp_server_models(processes):
         if state == "loaded" and time.monotonic() < stop:
             slots = llamacpp_slots(row.get("id"))
             pid = server_for(processes, args)
-            model.update(slots, context=slots.get("context") or ctx,
+            # --ctx-size is the whole KV cache: with a unified cache (the default)
+            # every slot reports all of it as its n_ctx, so the slot sum overcounts.
+            model.update(slots, context=ctx or slots.get("context"),
                          context_memory=context_memory(pid) if pid else None)
         models.append(model)
     forget_models("llamacpp", {model["name"] for model in models} | ({""} if not models else set()))
