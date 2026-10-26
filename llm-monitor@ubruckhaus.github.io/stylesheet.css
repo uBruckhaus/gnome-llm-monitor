@@ -22,7 +22,8 @@
 .llm-monitor-panel {
   width: 400px;
   spacing: 8px;
-  padding: 4px 6px;
+  /* room on the right for the overlay scrollbar */
+  padding: 4px 14px 4px 6px;
 }
 
 .llm-monitor-hero {

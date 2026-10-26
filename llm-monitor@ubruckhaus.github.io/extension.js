@@ -523,15 +523,29 @@ class LlmMonitorIndicator extends PanelMenu.Button {
         this.add_child(stack);
 
         this._panel = new DetailPanel(gicon);
+        // Scrolls when the details are taller than the screen (many models, small screen).
+        this._scroll = new St.ScrollView({
+            style_class: 'llm-monitor-scroll',
+            hscrollbar_policy: St.PolicyType.NEVER,
+            vscrollbar_policy: St.PolicyType.AUTOMATIC,
+            overlay_scrollbars: true,
+            x_expand: true,
+        });
+        this._scroll.child = this._panel.actor;
         const item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-        item.add_child(this._panel.actor);
+        item.add_child(this._scroll);
         this.menu.addMenuItem(item);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._freeItem = this.menu.addAction('Free GPU memory', () => extension.freeGpu(), 'edit-clear-all-symbolic');
         this.menu.addAction('Open btop', () => extension.openBtop(), 'utilities-system-monitor-symbolic');
         this.menu.connect('open-state-changed', (_menu, open) => {
-            if (open)
-                this._panel.update(this._stats);
+            if (!open)
+                return;
+            // Room for the menu's own padding and the two actions below the details.
+            const workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+            const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            this._scroll.style = `max-height: ${Math.max(200, Math.round(workArea.height / scale) - 160)}px;`;
+            this._panel.update(this._stats);
         });
         this._render();
     }
@@ -611,10 +625,18 @@ export default class LlmMonitorExtension extends Extension {
     }
 
     // Stops the llama-server, Ollama and vLLM user services and unloads LM Studio's
-    // models: the only action that changes anything.
+    // models: the only action that changes anything. One run at a time; the script
+    // gives each step a time limit and tells in a notification what it freed.
+    // A run is not cut short on disable: a half-done systemctl stop helps nobody.
     freeGpu() {
+        if (this._freeing)
+            return;
         const script = this.dir.get_child('scripts').get_child('free-gpu.sh').get_path();
-        this._spawn(['bash', script]);
+        const proc = this._spawn(['bash', script]);
+        if (!proc)
+            return;
+        this._freeing = true;
+        proc.wait_async(null, () => (this._freeing = false));
     }
 
     // Focus a btop window if one is open, else start btop in the default terminal.
@@ -645,9 +667,10 @@ export default class LlmMonitorExtension extends Extension {
 
     _spawn(argv) {
         try {
-            Gio.Subprocess.new(argv, Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE);
+            return Gio.Subprocess.new(argv, Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE);
         } catch (e) {
             console.error(`[LLM Monitor] ${argv[0]}: ${e.message}`);
+            return null;
         }
     }
 }
